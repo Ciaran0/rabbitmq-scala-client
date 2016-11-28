@@ -49,7 +49,7 @@ private[connection] class ChannelWrapper(channel: Channel, eventConsumer: Event 
     val queueName = ensureQueue(channel, queue)
     val consumerTag = channel.basicConsume(queueName, false, new DefaultConsumer(channel) {
       override def handleDelivery(consumerTag: String, envelope: JavaEnvelope, properties: AMQP.BasicProperties, body: Array[Byte]): Unit = {
-        consumer(OurEnvelope(envelope.getExchange, envelope.getRoutingKey, Message.Raw(body, properties)), new ManualAcker {
+        consumer(OurEnvelope(envelope.getExchange, envelope.isRedeliver, envelope.getDeliveryTag, envelope.getRoutingKey, Message.Raw(body, properties)), new ManualAcker {
           override def reject(requeue: Boolean): Unit = channel.basicReject(envelope.getDeliveryTag, requeue)
 
           override def ack(): Unit = channel.basicAck(envelope.getDeliveryTag, false)
@@ -73,7 +73,7 @@ private[connection] class ChannelWrapper(channel: Channel, eventConsumer: Event 
     val queueName = ensureQueue(channel, queue)
     val consumerTag = channel.basicConsume(queueName, true, new DefaultConsumer(channel) {
       override def handleDelivery(consumerTag: String, envelope: JavaEnvelope, properties: AMQP.BasicProperties, body: Array[Byte]): Unit = {
-        consumer(OurEnvelope(envelope.getExchange, envelope.getRoutingKey, Message.Raw(body, properties)))
+        consumer(OurEnvelope(envelope.getExchange, envelope.isRedeliver, envelope.getDeliveryTag, envelope.getRoutingKey, Message.Raw(body, properties)))
       }
     })
     new ConsumerCloser(consumerTag)

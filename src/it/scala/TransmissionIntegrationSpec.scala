@@ -32,10 +32,11 @@ class TransmissionIntegrationSpec extends FlatSpec with Matchers with AMQPIntegr
 
       // define expectations
       receiver expects * onCall { envelope: Envelope =>
-        val Envelope(exchange, routingKey, Message.String(string)) = envelope
+        val Envelope(exchange, redeliver, deliveryTag ,routingKey, Message.String(string)) = envelope
         exchange should be ("test-exchange")
         routingKey should be ("test.key")
         string should be ("test")
+        redeliver should be (false)
       }
 
       // send message
